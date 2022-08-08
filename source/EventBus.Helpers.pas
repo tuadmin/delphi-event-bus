@@ -218,13 +218,27 @@ end;
 class function TInterfaceHelper.GetQualifiedName(const AIntf: IInterface): string;
 var
   LType: TRttiInterfaceType;
+  IntfType:TRttiInterfaceType;
+  ctx: TRttiContext;
+  obj: TObject;
 begin
-  LType := GetType(AIntf);
-
-  if Assigned(LType) then
-    Result := LType.QualifiedName
-  else
-    Result := EmptyStr;
+  // FIx by Tuadmin for Delphi Alexandria 11.1 
+  try
+    obj := AIntf as TObject;
+    for IntfType in (ctx.GetType(obj.ClassType) as TRttiInstanceType).GetImplementedInterfaces do
+    begin
+      result := IntfType.QualifiedName;
+      exit;
+    end;
+  Except
+  begin
+    LType := GetType(AIntf);//ever time return "System.IInterface"
+    if Assigned(LType) then
+      Result := LType.QualifiedName
+    else
+      Result := EmptyStr;
+    end;
+  end;
 end;
 
 class function TInterfaceHelper.GetMethod(const AIntf: IInterface; const AMethodName: string): TRttiMethod;
